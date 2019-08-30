@@ -142,7 +142,9 @@ TClntMsgRequest::TClntMsgRequest(List(TAddrIA) IAs,
     IsDone=false;
     SPtr<TOpt> ptr;
     ptr = new TOptDUID(OPTION_CLIENTID, ClntCfgMgr().getDUID(), this );
-    Options.push_back( ptr );
+    if (ptr) {
+        Options.push_back( ptr );
+    }
 
     if (!srvDUID) {
 	Log(Error) << "Unable to send REQUEST: ServerId not specified.\n" << LogEnd;
@@ -153,7 +155,9 @@ TClntMsgRequest::TClntMsgRequest(List(TAddrIA) IAs,
     ptr = new TOptDUID(OPTION_SERVERID, srvDUID,this);
     // all IAs provided by checkSolicit
     SPtr<TAddrIA> ClntAddrIA;
-    Options.push_back( ptr );
+    if (ptr) {
+        Options.push_back( ptr );
+    }
 	
     IAs.first();
     while (ClntAddrIA = IAs.get()) 

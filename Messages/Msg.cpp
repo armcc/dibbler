@@ -68,11 +68,19 @@ void TMsg::setAttribs(int iface, SPtr<TIPv6Addr> addr, int msgType, long transID
 int TMsg::getSize()
 {
     int pktsize=0;
+    int optionCount = 0;
     TOptList::iterator opt;
     for (opt = Options.begin(); opt!=Options.end(); ++opt)
     {
-	pktsize += (*opt)->getSize();
+        Log(Info) << "### CPE Debug - Option with index " << optionCount++ << LogEnd ;
+        if ((*opt) != NULL)
+        {
+            Log(Info) << "### CPE Debug - Option with type  " << (*opt)->getOptType() << LogEnd ;
+            pktsize += (*opt)->getSize();
+        }
     }
+    Log(Info) << "### CPE Debug - Packet size of option (Add 4) " << pktsize << LogEnd ;
+
     return pktsize + 4;
 }
 
