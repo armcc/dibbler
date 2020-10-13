@@ -501,7 +501,15 @@ void delete_radvd_conf(const char* ifname, const char* prefixPlain, int prefixLe
     rename(RADVD_FILE,RADVD_FILE".old");
 
     f = fopen(RADVD_FILE".old","r");
+    if (!f) {
+        sprintf(error_message(), "Unable to open %s file.", RADVD_FILE".old");
+        return;
+    }
     f2 = fopen(RADVD_FILE,"w");
+    if (!f2) {
+        sprintf(error_message(), "Unable to open %s file.", RADVD_FILE);
+        return;
+    }
 
     snprintf(buf2, 511, "### %s start ###\n", ifname);
     while (fgets(buf,511,f)) {
