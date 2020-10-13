@@ -226,6 +226,19 @@ bool TCfgMgr::setDUID(const std::string& filename, TIfaceMgr & ifaceMgr) {
           continue;
         }
 
+        /*
+           If there are multiple interfaces and the DUID is being derived from
+           the MAC address then it's not predictable which MAC address will be
+           used. Add a cable modem specific hack to try to make the DUID
+	   consistent by ensuring that the erouter0 MAC address is always used.
+        */
+        std::size_t isErouter = realIface->getFullName().find("erouter0");
+        if ( isErouter == std::string::npos ) {
+          Log(Info) << "DUID creation:  Interface " << realIface->getFullName()
+                    << " skipped: Not erouter0." << LogEnd;
+          continue;
+        }
+
         found=true;
     }
 
