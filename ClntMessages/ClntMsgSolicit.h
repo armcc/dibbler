@@ -26,6 +26,7 @@ public:
                   List(TClntCfgPD) pdLst, bool rapid=false,
 		  bool remoteAutoconf = false);
 
+    static unsigned int SolMaxRT;
     void answer(SPtr<TClntMsg> msg);
 
     void doDuties();

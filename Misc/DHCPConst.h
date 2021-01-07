@@ -156,6 +156,8 @@
 // draft-ietf-softwire-ds-lite-tunnel-option-10, approved by IESG
 #define OPTION_AFTR_NAME        64
 
+#define OPTION_SOL_MAX_RT       82
+
 // RFC6939
 #define OPTION_CLIENT_LINKLAYER_ADDR 79
 
