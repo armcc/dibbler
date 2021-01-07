@@ -223,6 +223,9 @@ TClntMsg::TClntMsg(int iface, SPtr<TIPv6Addr> addr, char* buf, int bufSize)
 	    Log(Warning) << "Option " << code<< " in message "
 			 << MsgType << " is not supported." << LogEnd;
 	    break;
+	case OPTION_SOL_MAX_RT:
+	    ptr = new TOptInteger(code, length, buf+pos, bufSize, this);
+	    break;
 	default:
 	    ptr = parseExtraOption(buf+pos, code, length);
 	    if (!ptr)

@@ -27,8 +27,11 @@
 #include "ClntOptElapsed.h"
 #include "ClntOptPreference.h"
 #include "OptEmpty.h"
+#include "OptGeneric.h"
 #include <cmath>
 #include "Logger.h"
+
+unsigned int TClntMsgSolicit::SolMaxRT = SOL_MAX_RT;
 
 TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
 				 List(TClntCfgIA) iaLst, 
@@ -38,7 +41,7 @@ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
     :TClntMsg(iface, addr, SOLICIT_MSG)
 {
     IRT=SOL_TIMEOUT;
-    MRT=SOL_MAX_RT;
+    MRT=TClntMsgSolicit::SolMaxRT;
     MRC=0; //these both below mean there is no ending condition and transactions
     MRD=0; //lasts till receiving answer
     RT=0;
@@ -117,6 +120,14 @@ void TClntMsgSolicit::answer(SPtr<TClntMsg> msg)
     if (shallRejectAnswer(msg)) {
         Log(Info) << "Server message was rejected." << LogEnd;
 	return;
+    }
+
+    SPtr<TOpt> ptrOpt = msg->getOption(OPTION_SOL_MAX_RT);
+    if (ptrOpt) {
+        SPtr<TOptInteger> solMaxRtOpt = SPtr_cast<TOptInteger>(ptrOpt);
+        TClntMsgSolicit::SolMaxRT = solMaxRtOpt->getValue();
+        MRT = TClntMsgSolicit::SolMaxRT;
+        Log(Info) << "Received SOL_MAX_RT from server: " << TClntMsgSolicit::SolMaxRT << LogEnd;
     }
 
     switch (msg->getType()) {
