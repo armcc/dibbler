@@ -453,6 +453,32 @@ int TClntIfaceMgr::numBits(int i) {
     return (bits + 1);
 }
 
+void TClntIfaceMgr::notifyExpireInfo(TNotifyScriptParams& params, SPtr<TIfaceIface> iface,
+                                     SPtr<TIPv6Addr> addr, unsigned int prefixLen,
+                                     TIAType type)
+{
+    stringstream tmp;
+
+    if (iface)
+    {
+        tmp << iface->getID();
+        params.addParam("IFINDEX", tmp.str());
+        params.addParam("IFACE", iface->getName());
+    }
+
+    switch (type)
+    {
+        case IATYPE_IA:
+            params.addAddr(addr, 0, 0);
+            break;
+        case IATYPE_PD:
+            params.addPrefix(addr, prefixLen, 0, 0);
+            break;
+
+    }
+}
+
+
 bool TClntIfaceMgr::modifyPrefix(int iface, SPtr<TIPv6Addr> prefix, int prefixLen,
                                  unsigned int pref, unsigned int valid,
                                  PrefixModifyMode mode,
@@ -628,8 +654,12 @@ bool TClntIfaceMgr::modifyPrefix(int iface, SPtr<TIPv6Addr> prefix, int prefixLe
                                     subprefixLen, pref, valid);
             break;
         case PREFIX_MODIFY_DEL:
-          status = prefix_del( (*i)->getName(), (*i)->getID(), subprefix->getPlain(),
-                               subprefixLen);
+            TNotifyScriptParams expireParams;
+            status = prefix_del( (*i)->getName(), (*i)->getID(), subprefix->getPlain(),
+                                 subprefixLen);
+            notifyExpireInfo(expireParams, *i, subprefix, subprefixLen, IATYPE_PD);
+            TIfaceMgr::notifyScript(ClntCfgMgr().getScript(), "expire", expireParams);
+
             break;
         }
         if (status==LOWLEVEL_NO_ERROR) {

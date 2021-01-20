@@ -90,6 +90,9 @@ public:
                       unsigned int pref, unsigned int valid, PrefixModifyMode mode,
                       TNotifyScriptParams* params /*= NULL*/);
 
+    void notifyExpireInfo(TNotifyScriptParams& params, SPtr<TIfaceIface> iface,
+                      SPtr<TIPv6Addr> addr, unsigned int prefixLen, TIAType type);
+
     std::string XmlFile;
 
     static TClntIfaceMgr* Instance;
