@@ -465,8 +465,10 @@ bool TSrvTransMgr::unicastCheck(SPtr<TSrvMsg> msg) {
                                          + msg->getLocalAddr()->getPlain(), NULL));
     options.push_back(status);
 
-    // Message will be sent in the constructor
-    TSrvMsgReply(msg, options);
+    SPtr<TSrvMsg> msgReply = new TSrvMsgReply(msg, options);
+
+    // Send the packet here with 'use multicast' option
+    sendPacket(msgReply);
 
     return false;
 }

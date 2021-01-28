@@ -241,19 +241,20 @@ bool TClntOptIA_NA::doDuties() {
                 ptrIA->delAddr(ptrOptAddr->getAddr());
                 // delete address from IfaceMgr
                 ptrIface->delAddr(ptrOptAddr->getAddr(), ptrIface->getPrefixLength());
-                break; // analyze next option OPTION_IA_NA
-            }
+            /* Loop through all the IA_NA received from the server */
+            } else {
 
-            // set up new options in IfaceMgr
-            SPtr<TIfaceIface> ptrIface = ClntIfaceMgr().getIfaceByID(Iface_);
-            if (ptrIface)
-                ptrIface->updateAddr(ptrOptAddr->getAddr(),
-                        ptrOptAddr->getPref(),
-                        ptrOptAddr->getValid());
-            // set up new options in addrDB
-            ptrAddrAddr->setPref(ptrOptAddr->getPref());
-            ptrAddrAddr->setValid(ptrOptAddr->getValid());
-            ptrAddrAddr->setTimestamp();
+                // set up new options in IfaceMgr
+                SPtr<TIfaceIface> ptrIface = ClntIfaceMgr().getIfaceByID(Iface_);
+                if (ptrIface)
+                    ptrIface->updateAddr(ptrOptAddr->getAddr(),
+                            ptrOptAddr->getPref(),
+                            ptrOptAddr->getValid());
+                // set up new options in addrDB
+                ptrAddrAddr->setPref(ptrOptAddr->getPref());
+                ptrAddrAddr->setValid(ptrOptAddr->getValid());
+                ptrAddrAddr->setTimestamp();
+            }
         }
     }
     SPtr<TClntCfgIA> ptrCfgIA;
