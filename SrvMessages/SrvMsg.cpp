@@ -255,7 +255,7 @@ void TSrvMsg::processOptions(SPtr<TSrvMsg> clientMsg, bool quiet) {
         }
         case OPTION_VENDOR_OPTS:
         {
-            SPtr<TOptVendorData> v = SPtr_cast<TOptVendorData>(opt);
+            SPtr<TOptVendorSpecInfo> v = SPtr_cast<TOptVendorSpecInfo>(opt);
             appendVendorSpec(ClientDUID, Iface, v->getVendor(), ORO);
             break;
         }
