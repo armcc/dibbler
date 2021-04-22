@@ -62,8 +62,9 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
     SPtr<TClntMsg> advertise = SPtr_cast<TClntMsg>(ClntTransMgr().getAdvertise());
     copyAAASPI(SPtr_cast<TClntMsg>(advertise));
 
-    // remove just used server
-    ClntTransMgr().delFirstAdvertise();
+    // There will be no server available for REQUEST.
+    // remove just used server later.
+    // ClntTransMgr().delFirstAdvertise();
 
     // copy whole list from SOLICIT ...
     Options = opts;
@@ -209,6 +210,12 @@ void TClntMsgRequest::doDuties()
     // timeout is reached and we still don't have answer, retransmit
     if (RC>MRC) 
     {
+        // remove all used servers from the list
+        while (ClntTransMgr().getAdvertiseLstCount())
+        {
+            ClntTransMgr().delFirstAdvertise();
+        }
+
         ClntTransMgr().sendRequest(Options, Iface);
 
         IsDone = true;

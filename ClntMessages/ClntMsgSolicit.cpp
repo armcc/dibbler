@@ -112,6 +112,13 @@ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
     appendAuthenticationOption();
     
     IsDone = false;
+
+    // remove all used servers from the list
+    while (ClntTransMgr().getAdvertiseLstCount())
+    {
+        ClntTransMgr().delFirstAdvertise();
+    }
+
     send();
 }
 
