@@ -208,6 +208,12 @@ TSrvMsgReply::TSrvMsgReply(SPtr<TSrvMsgDecline> decline)
         SrvAddrMgr().addClient(declinedClient);
     }
 
+    // Add a global status code to the message.  RFC 3315, 18.2.7, last paragraph
+    // The status code is described where the client and server IDs are, at the global level.
+    SPtr<TOpt> globalOptStatusCode =
+                new TOptStatusCode(STATUSCODE_SUCCESS, "", this);
+    Options.push_back(globalOptStatusCode);
+    
     decline->firstOption();
     while (ptrOpt = decline->getOption() )
     {
