@@ -55,6 +55,7 @@ class TSrvOptIA_NA : public TOptIA_NA
 
     SPtr<TIPv6Addr> getFreeAddr(SPtr<TIPv6Addr> hint);
     SPtr<TIPv6Addr> getExceptionAddr();
+    bool isValidAddr(SPtr<TSrvOptIA_NA> optIA, SPtr <TAddrIA> ptrIA);
 };
 
 #endif

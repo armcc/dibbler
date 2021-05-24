@@ -472,6 +472,10 @@ bool TSrvOptIA_NA::renew(SPtr<TSrvOptIA_NA> queryOpt, bool complainIfMissing)
       return false;
     }
 
+    SPtr<TSrvOptIA_NA> ia = SPtr_cast<TSrvOptIA_NA>(queryOpt);
+    if (ia && !isValidAddr(ia,ptrIA))
+        return false;
+
     // everything seems ok, update data in addrdb
     ptrIA->setTimestamp();
     T1_ = ptrIA->getT1();
@@ -517,7 +521,10 @@ void TSrvOptIA_NA::rebind(SPtr<TSrvOptIA_NA> queryOpt,
         return;
     }
 
-    /// @todo: 18.2.4 par. 3 (check if addrs are appropriate for this link)
+    /// 18.2.4 par. 3 (check if addrs are appropriate for this link)
+    SPtr<TSrvOptIA_NA> ia = SPtr_cast<TSrvOptIA_NA>(queryOpt);
+    if (ia && !isValidAddr(ia,ptrIA))
+        return;
 
     // everything seems ok, update data in addrdb
     ptrIA->setTimestamp();
@@ -711,4 +718,93 @@ bool TSrvOptIA_NA::assignSequentialAddr(SPtr<TSrvMsg> clientMsg, bool quiet) {
     // and all of them are not usable for one reason or ther other. I finally
     // give up.
     return false;
+}
+
+bool TSrvOptIA_NA::isValidAddr(SPtr<TSrvOptIA_NA> optIA, SPtr <TAddrIA> ptrIA)
+{
+    if (!optIA){
+        return true; //No address information return true
+    }
+
+    SPtr<TSrvCfgIface> cfgIface = SrvCfgMgr().getIfaceByID(Iface);
+    EAddrStatus onLink = ADDRSTATUS_YES;
+    SPtr<TOpt> opt;
+    SPtr<TSrvOptIAAddress> reqAddr;
+    SPtr <TAddrAddr> ptrAddr;
+
+    int checkCnt=0;
+    int addrOwned=true;
+
+    optIA->firstOption();
+    while ((opt = optIA->getOption()) && (onLink == ADDRSTATUS_YES) ) {
+        if (opt->getOptType() != OPTION_IAADDR){
+            continue;
+        }
+        reqAddr = SPtr_cast<TSrvOptIAAddress>(opt);
+        if (!reqAddr) {
+            continue;
+        }
+        checkCnt++;
+        onLink = cfgIface->confirmAddress(IATYPE_IA, reqAddr->getAddr());
+
+#ifdef RFC3315_VALIDATE_FULL_ADDR
+        if (onLink == ADDRSTATUS_YES) {
+            // walk through addrlst of client and check if reqAddr is owned by client 
+            ptrIA->firstAddr();
+            while ( ptrAddr = ptrIA->getAddr() ) {
+                if (ptrAddr->get()==reqAddr->getAddr())
+                    break;
+            }
+            if (ptrAddr == NULL) { // req address not found in client database
+                addrOwned=false;
+                break;
+            }
+        }
+#endif
+    }
+
+    if (!checkCnt){
+        return true; //no address option type
+    }
+
+    /*
+     * RFC3315 sections 18.2.3 and 18.2.4 have identical language:
+     *
+     */
+    if (onLink == ADDRSTATUS_NO){
+        /* 
+         * If the server finds that any of the addresses are not
+         * appropriate for the link to which the client is attached,
+         * the server returns the address to the client with lifetimes
+         * of 0.
+         */
+        SPtr<TOptIAAddress> replyOpt = new TSrvOptIAAddress(reqAddr->getAddr(),0,0,this->Parent);
+        SubOptions.append( SPtr_cast<TOpt>(replyOpt) );
+
+        SPtr<TOptStatusCode> replyStatus;
+        replyStatus = new TOptStatusCode(STATUSCODE_NOTONLINK,"Address(es) not on link",this->Parent);
+        SubOptions.append( SPtr_cast<TOpt>(replyStatus) );
+        return false;
+    }
+
+#ifdef RFC3315_VALIDATE_FULL_ADDR
+    else if (addrOwned == false) {
+        /*
+         *
+         * If the server cannot find a client entry for the IA the
+         * server returns the IA containing no addresses with a Status
+         * Code option set to NoBinding in the Reply message.
+         *
+         * On mismatch we use this pretending we have not the IA
+         * as soon as we have not an address.
+         */
+        SPtr<TOptStatusCode> ptrStatus;
+        ptrStatus = new TOptStatusCode(STATUSCODE_NOBINDING,"Address(es) binding not exists",this->Parent);
+        SubOptions.append( SPtr_cast<TOpt>(ptrStatus) );
+        return false;
+    }
+#endif
+
+    // valid client addr
+    return true;
 }
