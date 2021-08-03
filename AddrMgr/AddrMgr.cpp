@@ -410,7 +410,11 @@ bool TAddrMgr::addPrefix(SPtr<TAddrClient> client, SPtr<TDUID> duid , SPtr<TIPv6
     if (ptrPrefix) {
         Log(Warning) << "PD: Prefix " << ptrPrefix->get()->getPlain() << "/" << ptrPrefix->getLength()
                      << " is already assigned to this PD." << LogEnd;
-        return false;
+	/* Update timestamp for the existing prefix */
+        ptrPrefix->setTimestamp();
+        ptrPrefix->setPref(pref);
+        ptrPrefix->setValid(valid);
+        return true;
     }
 
     // add address
@@ -482,8 +486,19 @@ bool TAddrMgr::updatePrefix(SPtr<TAddrClient> client, SPtr<TDUID> duid , SPtr<TI
 
     // address already exists
     if (!ptrPrefix) {
-        Log(Warning) << "PD: Prefix " << prefix->getPlain() << " is not known. Unable to update." << LogEnd;
-        return false;
+        Log(Warning) << "PD: Prefix " << prefix->getPlain() << " is not known. Adding new prefix received in RENEW/REBIND" << LogEnd;
+        /* RFC 8415: If the server is configured to create new bindings as a result of
+         * processing Renew messages, the server SHOULD create a binding and
+         * return the IA with assigned addresses or delegated prefixes with
+         * lifetimes and, if applicable, T1/T2 times and other information
+         * requested by the client.
+         */
+        pd->addPrefix(prefix, pref, valid, length);
+        if (!quiet)
+            Log(Debug) << "PD: Adding " << prefix->getPlain()
+                       << " prefix to PD (iaid=" << IAID
+                       << ") to addrDB." << LogEnd;
+        return true;
     }
 
     ptrPrefix->setTimestamp();

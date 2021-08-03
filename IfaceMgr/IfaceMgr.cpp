@@ -310,7 +310,13 @@ void TIfaceMgr::optionToEnv(TNotifyScriptParams& params, SPtr<TOpt> opt, std::st
         while (SPtr<TOpt> subopt = opt->getOption()) {
             if (subopt->getOptType() == OPTION_IAADDR) {
                 SPtr<TOptIAAddress> addr = SPtr_cast<TOptIAAddress>(subopt);
-                if (!addr) {
+                /*
+                 * RDKB notify script handles only the first IA_NA address,
+                 * so only address with valid lifetime should be added.
+                 * Address release scenario with 0 lifetime, is already been
+                 * taken care of in separate notification event (i.e. 'expiry')
+                 */
+                if (!addr || !addr->getPref()) {
                     continue;
                 }
                 params.addAddr(addr->getAddr(), addr->getPref(), addr->getValid(), txtPrefix);
@@ -324,7 +330,12 @@ void TIfaceMgr::optionToEnv(TNotifyScriptParams& params, SPtr<TOpt> opt, std::st
         while (SPtr<TOpt> subopt = opt->getOption()) {
             if (subopt->getOptType() == OPTION_IAPREFIX) {
                 SPtr<TOptIAPrefix> prefix = SPtr_cast<TOptIAPrefix>(subopt);
-                if (!prefix) {
+                /*
+                 * RDKB notify script handles only the first IA_PD address,
+                 * so only prefix with valid lifetime should be added.
+                 * Prefix release scenario is same as for IA_NA.
+                 */
+                if (!prefix || !prefix->getPref()) {
                     continue;
                 }
                 params.addPrefix(prefix->getPrefix(),
