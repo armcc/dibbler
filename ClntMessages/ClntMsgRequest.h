@@ -18,7 +18,7 @@ class TClntIfaceMgr;
 class TClntMsgRequest : public TClntMsg
 {
   public:
-    TClntMsgRequest(TOptList opts, int iface);
+    TClntMsgRequest(TOptList opts, int iface, bool sendRequest = true);
     TClntMsgRequest(List(TAddrIA) requestIALst,
                     SPtr<TDUID> srvDUID,
                     int iface);

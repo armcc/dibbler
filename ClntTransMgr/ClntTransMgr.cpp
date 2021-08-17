@@ -802,8 +802,11 @@ void TClntTransMgr::sendRequest(TOptList requestOptions, int iface)
 	    (*opt)->getOptType() == OPTION_AUTH)
             opt = requestOptions.erase(opt);
     }
-    SPtr<TClntMsg> ptr = new TClntMsgRequest(requestOptions, iface);
-    Transactions.append(ptr);
+    SPtr<TClntMsg> ptr = new TClntMsgRequest(requestOptions, iface,false);
+    if (ptr)
+    {
+      Transactions.append(ptr);
+    }
 }
 
 void TClntTransMgr::sendRenew()

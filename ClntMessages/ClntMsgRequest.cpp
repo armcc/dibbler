@@ -31,7 +31,7 @@
 /*
  * opts - options list WITHOUT serverDUID
  */
-TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
+TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface, bool sendRequest)
     :TClntMsg(iface, SPtr<TIPv6Addr>(), REQUEST_MSG) {
     IRT = REQ_TIMEOUT;
     MRT = REQ_MAX_RT;
@@ -127,7 +127,10 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
     appendElapsedOption();
     appendAuthenticationOption();
     IsDone = false;
-    send();
+    if(sendRequest)
+    {
+      send();
+    }
 }
 
 TClntMsgRequest::TClntMsgRequest(List(TAddrIA) IAs,
