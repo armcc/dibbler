@@ -117,6 +117,30 @@ bool TSrvAddrMgr::addClntAddr(SPtr<TDUID> clntDuid , SPtr<TIPv6Addr> clntAddr,
     // add address
     ptrAddr = new TAddrAddr(addr, pref, valid);
     ptrIA->addAddr(ptrAddr);
+
+    #define MAC_STR_LEN 17
+    char macStr[MAC_STR_LEN+1] = {0};
+    FILE *cmdFptr = NULL;
+    std::string findMACcmd = "ip neigh | grep ";
+    findMACcmd += ptrIA->getSrvAddr()->getPlain();
+    findMACcmd += " | awk '{print $5}' ";
+    if ((cmdFptr = popen(findMACcmd.c_str(), "r")) != NULL)
+    {
+        fgets(macStr, sizeof(macStr), cmdFptr);
+        if (strlen(macStr) == MAC_STR_LEN)
+        {
+            std::string addAddrCmd = "ip neigh replace ";
+            addAddrCmd += ptrAddr->get()->getPlain();
+            addAddrCmd += " lladdr ";
+            addAddrCmd += macStr;
+            addAddrCmd += " dev ";
+            addAddrCmd += cfgIface->getName();
+            addAddrCmd += " nud reachable";
+            system(addAddrCmd.c_str());
+        }
+       pclose(cmdFptr);
+    }
+
     if (!quiet)
         Log(Debug) << "Adding " << ptrAddr->get()->getPlain()
                    << " to IA (IAID=" << IAID << ") to addrDB." << LogEnd;

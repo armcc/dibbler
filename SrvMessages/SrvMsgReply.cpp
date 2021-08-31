@@ -45,6 +45,13 @@ TSrvMsgReply::TSrvMsgReply(SPtr<TSrvMsgConfirm> confirm)
     copyAAASPI(SPtr_cast<TSrvMsg>(confirm));
     copyRemoteID(SPtr_cast<TSrvMsg>(confirm));
 
+    SPtr<TAddrClient> newClient = SrvAddrMgr().getClient( ClientDUID );
+    if (!newClient)
+    {
+        newClient = new TAddrClient( ClientDUID );
+        SrvAddrMgr().addClient(newClient);
+    }
+
     if (!handleConfirmOptions( confirm->getOptLst() )) {
         IsDone = true;
         return;
