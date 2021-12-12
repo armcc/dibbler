@@ -20,6 +20,10 @@ class TAddrClient;
 #include "DUID.h"
 #include "Portable.h"
 
+#include "OptVendorClass.h"
+#include "OptUserClass.h"
+#include "OptDUID.h"
+
 class TAddrClient
 {
     friend std::ostream & operator<<(std::ostream & strum, TAddrClient &x);
@@ -68,6 +72,10 @@ public:
 
     unsigned long getLastTimestamp();
 
+    bool isEmptyOptions();
+
+    void addOption(SPtr<TOpt> opt);
+
     /// @brief 128 bits of pure randomness used in reconfigure process
     ///
     /// Reconfigure Key nonce is set be the server and the stored by the client.
@@ -79,6 +87,7 @@ private:
     List(TAddrIA) IAsLst;
     List(TAddrIA) TALst;
     List(TAddrIA) PDLst;
+    TOptList Options;
     SPtr<TDUID> DUID_;
 
     uint32_t SPI_;

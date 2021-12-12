@@ -18,8 +18,10 @@
 class TOptDUID : public TOpt
 {
   public:
+    friend std::ostream & operator<<(std::ostream & strum, TOptDUID &x);
     TOptDUID(int type, SPtr<TDUID> duid, TMsg* parent);
     TOptDUID(int type, const char* buf, int len, TMsg* parent);
+    TOptDUID(const TOptDUID& copy);
     size_t getSize();
 
     char * storeSelf(char* buf);

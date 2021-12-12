@@ -147,6 +147,56 @@ bool TSrvAddrMgr::addClntAddr(SPtr<TDUID> clntDuid , SPtr<TIPv6Addr> clntAddr,
     return true;
 }
 
+/**
+ * @brief adds options received from client.
+ *
+ * Add received DUID (Option 1), UserClassID (Option 15) or VendorClassID (option 16)
+ * to the dB.
+ *
+ * @param clntDuid client DUID
+ * @param optList client options list
+ *
+ * @return None
+ */
+void TSrvAddrMgr::addClientOptions(SPtr<TDUID> clntDuid, TOptList optList)
+{
+    SPtr <TAddrClient> ptrClient;
+    this->firstClient();
+    while ( ptrClient = this->getClient() ) {
+        if ( (*ptrClient->getDUID()) == (*clntDuid) )
+            break;
+    }
+
+    if (!ptrClient || !ptrClient->isEmptyOptions())
+        return;
+
+    Log(Info) << "Adding client Options for (DUID=" << clntDuid->getPlain() << ")" << LogEnd;
+    for (TOptList::iterator it = optList.begin(); it != optList.end(); ++it)
+    {
+        TOptPtr opt = *it;
+        int optType = opt->getOptType();
+        TOptPtr ptr;
+        switch(optType)
+        {
+            case OPTION_CLIENTID:
+                ptr = new TOptDUID(*(SPtr_cast<TOptDUID>(opt)));
+                ptrClient->addOption(ptr);
+                break;
+            case OPTION_USER_CLASS:
+                ptr = new TOptUserClass(*(SPtr_cast<TOptUserClass>(opt)));
+                ptrClient->addOption(ptr);
+                break;
+            case OPTION_VENDOR_CLASS:
+                ptr = new TOptVendorClass(*(SPtr_cast<TOptVendorClass>(opt)));
+                ptrClient->addOption(ptr);
+                break;
+            default:
+                /* Add case statement for other options, if required */
+                break;
+        }
+    }
+}
+
 /// Frees address (also deletes IA and/or client, if this was last address)
 ///
 /// @param clntDuid DUID of the client

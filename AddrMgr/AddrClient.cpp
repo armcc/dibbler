@@ -342,6 +342,16 @@ void TAddrClient::generateReconfKey() {
     fill_random(&ReconfKey_[0], 16);
 }
 
+bool TAddrClient::isEmptyOptions()
+{
+    return Options.empty();
+}
+
+void TAddrClient::addOption(SPtr<TOpt> opt)
+{
+    Options.push_back(opt);
+}
+
 // --------------------------------------------------------------------
 // --- operators ------------------------------------------------------
 // --------------------------------------------------------------------
@@ -365,6 +375,7 @@ std::ostream & operator<<(std::ostream & strum, TAddrClient &x)
 	}
 
     strum << "    <!-- " << x.IAsLst.count() << " IA(s) -->" << endl;
+    strum << "    <IACount>" << x.IAsLst.count() << "</IACount>" << endl;
     SPtr<TAddrIA> ptr;
     x.IAsLst.first();
     while (ptr = x.IAsLst.get() ) {
@@ -381,6 +392,28 @@ std::ostream & operator<<(std::ostream & strum, TAddrClient &x)
     x.PDLst.first();
     while (ptr = x.PDLst.get() ) {
         strum << *ptr;
+    }
+
+    strum << "    <optionCount>" << x.Options.size() << "</optionCount>" << endl;
+    for (TOptList::iterator it = x.Options.begin(); it != x.Options.end(); ++it)
+    {
+        TOptPtr opt = *it;
+        int optType = opt->getOptType();
+        switch(optType)
+        {
+            case OPTION_CLIENTID:
+                strum << *(SPtr_cast<TOptDUID>(opt));
+                break;
+            case OPTION_USER_CLASS:
+                strum << *(SPtr_cast<TOptUserClass>(opt));
+                break;
+            case OPTION_VENDOR_CLASS:
+                strum << *(SPtr_cast<TOptVendorClass>(opt));
+                break;
+            default:
+                /* To add other options in AddrMgr.xml, overload the stream insertion operator of the corresponding classes */
+                break;
+        }
     }
     strum << "  </AddrClient>" << endl;
     return strum;

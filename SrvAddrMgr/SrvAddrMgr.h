@@ -17,6 +17,10 @@
 #include "SrvCfgAddrClass.h"
 #include "SrvCfgPD.h"
 
+#include "OptVendorClass.h"
+#include "OptUserClass.h"
+#include "OptDUID.h"
+
 #define SrvAddrMgr() (TSrvAddrMgr::instance())
 
 class TSrvAddrMgr : public TAddrMgr
@@ -82,6 +86,8 @@ class TSrvAddrMgr : public TAddrMgr
     bool delCachedEntry(SPtr<TIPv6Addr> cachedEntry, TIAType type);
     bool delCachedEntry(SPtr<TDUID> clntDuid, TIAType type);
     void addCachedEntry(SPtr<TDUID> clntDuid, SPtr<TIPv6Addr> cachedEntry, TIAType type);
+
+    void addClientOptions(SPtr<TDUID> clntDuid, TOptList optList);
 
     void setCacheSize(int bytes);
     void dump();

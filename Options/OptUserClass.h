@@ -17,16 +17,21 @@
 class TOptUserClass : public TOpt
 {
  public:
+    friend std::ostream & operator<<(std::ostream & strum, TOptUserClass &x);
+
     struct UserClassData {
 	std::vector<char> opaqueData_;
     };
 
     std::vector<UserClassData> userClassData_;
 
+    std::string Plain_;
+
     bool parseUserData(const char* buf, unsigned short buf_len);
 
     TOptUserClass(uint16_t type, const char* buf, unsigned short buf_len, TMsg* parent);
     TOptUserClass(uint16_t type, TMsg* parent);
+    TOptUserClass(const TOptUserClass& copy);
     size_t getSize();
     virtual bool isValid() const;
     char* storeSelf( char* buf);

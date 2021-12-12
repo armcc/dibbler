@@ -19,6 +19,12 @@ TOptDUID::TOptDUID(int type, SPtr<TDUID> duid, TMsg* parent)
     DUID=duid;
 }
 
+TOptDUID::TOptDUID(const TOptDUID& copy)
+    :TOpt(copy.OptType, NULL)
+{
+    this->DUID = copy.DUID;
+}
+
 size_t TOptDUID::getSize() {
     if (DUID)
 	return DUID->getLen() + 4;
@@ -56,4 +62,10 @@ std::string TOptDUID::getPlain() {
     } else {
         return std::string("");
     }
+}
+
+std::ostream & operator<<(std::ostream & out, TOptDUID &x)
+{
+    out << "    <option 1>" << x.getPlain() << "</option>" << std::endl;
+    return out;
 }

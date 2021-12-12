@@ -11,6 +11,7 @@
 #include "DHCPConst.h"
 #include "OptUserClass.h"
 #include "Portable.h"
+#include "hex.h"
 #include <string.h>
 
 TOptUserClass::TOptUserClass(uint16_t type, const char* buf, unsigned short buf_len, TMsg* parent)
@@ -21,6 +22,13 @@ TOptUserClass::TOptUserClass(uint16_t type, const char* buf, unsigned short buf_
 TOptUserClass::TOptUserClass(uint16_t type, TMsg* parent)
     :TOpt(type, parent) {
     Valid = true;
+}
+
+TOptUserClass::TOptUserClass(const TOptUserClass& copy)
+    :TOpt(copy.OptType, NULL) {
+    Valid = true;
+    this->userClassData_ = copy.userClassData_;
+    this->Plain_ = copy.Plain_;
 }
 
 size_t TOptUserClass::getSize() {
@@ -68,6 +76,7 @@ bool TOptUserClass::parseUserData(const char* buf, unsigned short buf_len) {
 	data.opaqueData_.resize(len);
 	memcpy(&data.opaqueData_[0], buf + pos, len);
 	userClassData_.push_back(data);
+	Plain_ += hexToText((uint8_t*)(buf + pos), len);
 
 	pos += len;
 	buf_len -= len;
@@ -82,4 +91,9 @@ bool TOptUserClass::parseUserData(const char* buf, unsigned short buf_len) {
 
 bool TOptUserClass::isValid() const {
     return true;
+}
+
+std::ostream & operator<<(std::ostream & out, TOptUserClass &x) {
+    out << "    <option 15>" << x.Plain_ << "</option>" << std::endl;
+    return out;
 }

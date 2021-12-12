@@ -15,8 +15,11 @@
 class TOptVendorClass : public TOptUserClass
 {
  public:
+    friend std::ostream & operator<<(std::ostream & strum, TOptVendorClass &x);
+
     uint32_t Enterprise_id_;
 
+    TOptVendorClass(const TOptVendorClass& copy);
     TOptVendorClass(uint16_t type, const char* buf, unsigned short buf_len, TMsg* parent);
     size_t getSize();
     char * storeSelf( char* buf);

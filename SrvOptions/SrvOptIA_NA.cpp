@@ -123,11 +123,13 @@ TSrvOptIA_NA::TSrvOptIA_NA(SPtr<TSrvOptIA_NA> queryOpt, SPtr<TSrvMsg> queryMsg, 
     if (renew(queryOpt, false)) {
       Log(Info) << "Previous binding for client " << ClntDuid->getPlain() << ", IA(iaid="
                 << queryOpt->getIAID() << ") found and renewed." << LogEnd;
+      SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
       return;
     }
 
     // --- LEASE ASSIGN STEP 4: Try to find fixed lease
     if (assignFixedLease(queryOpt, quiet)) {
+        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
         return;
     }
 
@@ -146,16 +148,19 @@ TSrvOptIA_NA::TSrvOptIA_NA(SPtr<TSrvOptIA_NA> queryOpt, SPtr<TSrvMsg> queryMsg, 
 
     // --- LEASE ASSIGN STEP 6: Cached address? ---
     if (assignCachedAddr(quiet)) {
+        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
         return;
     }
     
     // --- LEASE ASSIGN STEP 7: client's hint ---
     if (assignRequestedAddr(queryMsg, queryOpt, quiet)) {
+        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
         return;
     }
 
     // --- LEASE ASSIGN STEP 8: get new random address --
     if (assignRandomAddr(queryMsg, quiet)) {
+        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
         return;
     }
 
