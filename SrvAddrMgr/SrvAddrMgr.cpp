@@ -267,6 +267,57 @@ bool TSrvAddrMgr::delClntAddr(SPtr<TDUID> clntDuid, unsigned long IAID,
     return true;
 }
 
+/// sagemcom fix: add for CDRouter test case dhcpv6_server_22
+/// check if this IAID is not found in addrdb
+///
+/// @param clntDuid DUID of the client
+/// @param IAID IA identifier
+/// @param quiet print out anything?
+/// @return true if IAID is different from addrdb when duid found
+bool TSrvAddrMgr::checkIaidDiff(SPtr<TDUID> clntDuid, unsigned long IAID, bool quiet)
+{
+    // find this client
+    SPtr <TAddrClient> ptrClient;
+    this->firstClient();
+    while ( ptrClient = this->getClient() ) {
+        if ( (*ptrClient->getDUID()) == (*clntDuid) )
+            break;
+    }
+    if (!ptrClient) { // have we found this client?
+        if (!quiet) {
+            Log(Debug) << "checkIaidDiff : Have no client (DUID=" << clntDuid->getPlain() << ")." << LogEnd;
+        }
+        return false;
+    }
+
+    // find this IA
+    SPtr <TAddrIA> ptrIA;
+    if (!ptrClient->countIA()) {
+        if (!quiet) {
+            Log(Debug) << "checkIaidDiff : Client (DUID=" << clntDuid->getPlain() << ") have no IA." << LogEnd;
+        }
+        return false;
+    }
+    ptrClient->firstIA();
+    while ( ptrIA = ptrClient->getIA() ) {
+        if (ptrIA->getIAID() == IAID)
+            break;
+    }
+
+    if (!ptrIA) { // have we found this IA?
+        if (!quiet) {
+            Log(Debug) << "checkIaidDiff :  New IAID=" << IAID << " is not found in addrdb." << LogEnd;
+        }
+        return true;
+    }
+
+    if (!quiet) {
+        Log(Debug) << "checkIaidDiff :  New IAID=" << IAID << " is found in addrdb." << LogEnd;
+    }
+
+    return false;
+}
+
 /**
  * @brief adds TA address to AddrMgr
  *

@@ -119,6 +119,10 @@ TSrvOptIA_NA::TSrvOptIA_NA(SPtr<TSrvOptIA_NA> queryOpt, SPtr<TSrvMsg> queryMsg, 
     // true for advertise, false for everything else
     bool quiet = (parent->getType()==ADVERTISE_MSG);
 
+    if (assignCheckUnknownAddr(queryOpt, quiet, parent)) {
+        return;
+    }
+
     // --- LEASE ASSIGN STEP 3: check if client already has binding
     if (renew(queryOpt, false)) {
       Log(Info) << "Previous binding for client " << ClntDuid->getPlain() << ", IA(iaid="
@@ -315,6 +319,60 @@ bool TSrvOptIA_NA::assignFixedLease(SPtr<TSrvOptIA_NA> req, bool quiet) {
     SrvCfgMgr().addClntAddr(this->Iface, reservedAddr);
     
     return true;
+}
+
+/// sagemcom fix: add for CDRouter test case dhcpv6_server_22
+/// @brief if unknown addr receive, should return NotOnLink status.
+///
+/// check if this IAID is not found in addrdb and cache, if both addrdb and cache not found,
+/// means unknow IAID containing an unknown address, should return status code 4:STATUSCODE_NOTONLINK
+///
+/// @param queryOpt client's IA_NA
+/// @param quiet should the assignment messages be logged (it shouldn't for solicit)
+/// @param parent This Msg
+///
+/// @return true, if reply msg will fill TOptStatusCode, do not need assign address.
+bool TSrvOptIA_NA::assignCheckUnknownAddr(SPtr<TSrvOptIA_NA> queryOpt, bool quiet, TMsg* parent) {
+
+    if (parent->getType()==REPLY_MSG && SrvAddrMgr().checkIaidDiff(ClntDuid, IAID_, quiet)) {
+        Log(Debug) << "dhcpv6_server_22 detect : unknow IAID " << IAID_ <<LogEnd;
+        SPtr<TSrvOptIAAddress> iaAddr = SPtr_cast<TSrvOptIAAddress>(queryOpt->getOption(OPTION_IAADDR));
+        if (iaAddr && iaAddr->getAddr()) {
+            // option addr is exist, check if it is in addrdb
+            if (SrvAddrMgr().addrIsFree(iaAddr->getAddr())) {
+                Log(Debug) << "dhcpv6_server_22 detect : IA address is not in addrdb:" << *(iaAddr->getAddr()) <<LogEnd;
+                // iaAddr is not in addrdb, check if it is in cache
+                SPtr<TIPv6Addr> candidate;
+                bool iaAddrNotInCache = false;
+                if (candidate = SrvAddrMgr().getCachedEntry(ClntDuid, IATYPE_IA)) {
+                    SPtr<TSrvCfgAddrClass> pool = SrvCfgMgr().getClassByAddr(Iface, candidate);
+                    if (pool) {
+                        if (*candidate != *(iaAddr->getAddr())) {
+                            Log(Debug) << "dhcpv6_server_22 detect : Cached address " << *candidate
+                                << " != ia address " << *(iaAddr->getAddr()) << LogEnd;
+                            iaAddrNotInCache = true;
+                        }
+                    } else {
+                        Log(Debug) << "dhcpv6_server_22 detect : Cached address " << *candidate
+                            << " found, but it is no longer valid." << LogEnd;
+                        iaAddrNotInCache = true;
+                    }
+                } else {
+                    // no any cache addr
+                    Log(Debug) << "dhcpv6_server_22 detect : No cached address. " << LogEnd;
+                    iaAddrNotInCache = true;
+                }
+                if (iaAddrNotInCache) {
+                    //unknow address, return status code 4:STATUSCODE_NOTONLINK
+                    SubOptions.append(new TOptStatusCode(STATUSCODE_NOTONLINK, "Address not for use on this link.", Parent));
+                    Log(Warning) << "dhcpv6_server_22 detect :  address " << *(iaAddr->getAddr())
+                        << " is unknow addr, return status code 4:STATUSCODE_NOTONLINK." << LogEnd;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void TSrvOptIA_NA::releaseAllAddrs(bool quiet) {

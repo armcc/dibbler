@@ -54,6 +54,7 @@ class TSrvAddrMgr : public TAddrMgr
                      bool quiet);
     bool delClntAddr(SPtr<TDUID> duid,unsigned long IAID, SPtr<TIPv6Addr> addr,
                      bool quiet);
+    bool checkIaidDiff(SPtr<TDUID> clntDuid, unsigned long IAID, bool quiet);
     virtual bool verifyAddr(SPtr<TIPv6Addr> addr);
 
     // TA address management

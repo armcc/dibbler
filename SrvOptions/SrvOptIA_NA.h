@@ -48,6 +48,7 @@ class TSrvOptIA_NA : public TOptIA_NA
     SPtr<TIPv6Addr> getAddressHint(SPtr<TSrvMsg> clientReq, SPtr<TIPv6Addr> hint);
     bool assignAddr(SPtr<TIPv6Addr> addr, uint32_t pref, uint32_t valid, bool quiet);
     bool assignFixedLease(SPtr<TSrvOptIA_NA> req, bool quiet);
+    bool assignCheckUnknownAddr(SPtr<TSrvOptIA_NA> queryOpt, bool quiet, TMsg* parent);
 
     SPtr<TIPv6Addr>   ClntAddr;
     SPtr<TDUID>       ClntDuid;
