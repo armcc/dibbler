@@ -104,6 +104,19 @@ void TClntMsgRenew::answer(SPtr<TClntMsg> Reply)
 
     SPtr<TOptDUID> srvDUID = getServerID();
 
+    if (isAddrChanged(Reply) || isPrefixChanged(Reply)) {
+        SPtr<TClntOptIA_NA> reqOptNA = SPtr_cast<TClntOptIA_NA>(this->getOption(OPTION_IA_NA));
+        SPtr<TClntOptIA_PD> reqOptPD = SPtr_cast<TClntOptIA_PD>(this->getOption(OPTION_IA_PD));
+
+        prepareAndSendRelease();
+        reqOptNA->delAddresses();
+        reqOptPD->delPrefixes();
+
+        IsDone = true;
+
+        return;
+    }
+
     Reply->firstOption();
     // for each option in message... (there should be only one IA option, as we send
     // separate RENEW for each IA, but we check all options anyway)

@@ -73,6 +73,18 @@ TClntMsgRebind::TClntMsgRebind(TOptList ptrOpts, int iface)
 
 void TClntMsgRebind::answer(SPtr<TClntMsg> Reply)
 {
+    if (isAddrChanged(Reply) || isPrefixChanged(Reply)) {
+        SPtr<TClntOptIA_NA> reqOptNA = SPtr_cast<TClntOptIA_NA>(this->getOption(OPTION_IA_NA));
+        SPtr<TClntOptIA_PD> reqOptPD = SPtr_cast<TClntOptIA_PD>(this->getOption(OPTION_IA_PD));
+
+        prepareAndSendRelease();
+        reqOptNA->delAddresses();
+        reqOptPD->delPrefixes();
+
+        IsDone = true;
+        return;
+    }
+
     TClntMsg::answer(Reply);
     return;
 

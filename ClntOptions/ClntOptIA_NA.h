@@ -37,6 +37,7 @@ class TClntOptIA_NA : public TOptIA_NA
     void firstAddr();
     int countAddr();
     bool isValid() const;
+    void delAddresses();
 
  private:
     void releaseAddr(long IAID, SPtr<TIPv6Addr> addr );

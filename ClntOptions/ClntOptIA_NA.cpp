@@ -181,6 +181,54 @@ TClntOptIA_NA::~TClntOptIA_NA() {
 
 }
 
+void TClntOptIA_NA::delAddresses() {
+    SPtr<TAddrIA> ptrIA=ClntAddrMgr().getIA(this->getIAID());
+    if (!ptrIA) {
+        // unlikely, addrMgr should have this IAID which is to be renewed/rebind
+        Log(Warning) << "unknown IA (IAID=" << this->getIAID() << ")." << LogEnd;
+        return;
+    }
+
+    SPtr<TIfaceIface> ptrIface = ClntIfaceMgr().getIfaceByID(Iface_);
+
+    if (!ptrIface)
+    {
+        Log(Error) << "Interface with ifindex=" << Iface_ << " not found." << LogEnd;
+        return;
+    }
+
+    SPtr<TAddrAddr> ptrAddrAddr;
+    SPtr<TOptIAAddress> ptrOptAddr;
+
+    this->firstAddr();
+    while (ptrOptAddr = this->getAddr()) {
+        ptrAddrAddr = ptrIA->getAddr(ptrOptAddr->getAddr());
+        if (ptrAddrAddr) {
+            //delete Address from addrDB
+            ptrIA->delAddr(ptrOptAddr->getAddr());
+
+            //delete Address from IfaceMgr
+            ptrIface->delAddr(ptrOptAddr->getAddr(), ptrIface->getPrefixLength());
+        }
+    }
+
+    SPtr<TClntCfgIface> cfgIface = ClntCfgMgr().getIface(Iface_);
+    if (!cfgIface) {
+        Log(Error) << "Unable to set IA state for iaid=" << getIAID() << " received on interface "
+                   << "ifindex=" << Iface_ << ": No such interface in CfgMgr found." << LogEnd;
+        return;
+    }
+
+    SPtr<TClntCfgIA> cfgIA = cfgIface->getIA(getIAID());
+    if (!cfgIA) {
+        Log(Error) << "Unable to find IA with iaid=" << getIAID() << " on the "
+                   << cfgIface->getFullName() << " interface (CfgMgr)." << LogEnd;
+        return;
+    }
+    cfgIA->setState(STATE_NOTCONFIGURED);
+    ptrIA->setState(STATE_NOTCONFIGURED);
+}
+
 bool TClntOptIA_NA::doDuties() {
 
     // find this IA in addrMgr...

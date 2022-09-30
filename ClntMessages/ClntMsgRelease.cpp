@@ -48,7 +48,7 @@ TClntMsgRelease::TClntMsgRelease(int iface, SPtr<TIPv6Addr> addr,
 
     IRT=REL_TIMEOUT;
     MRT=0;
-    MRC=REL_MAX_RC;
+    MRC=1;   /*Send just one release message. As per CM-SP-eRouter-I21-220209, eRouter MUST NOT wait for confirmation of receipt of the release.*/
     MRD=0;
     RT=0;
 

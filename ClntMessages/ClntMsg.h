@@ -60,6 +60,9 @@ public:
  protected:
     bool check(bool clntIDmandatory, bool srvIDmandatory);
     bool appendClientID();
+    bool isAddrChanged(SPtr<TClntMsg> Reply);
+    bool isPrefixChanged(SPtr<TClntMsg> Reply);
+    void prepareAndSendRelease();
 
     long IRT;           // Initial Retransmission Time
     long MRT;           // Maximum Retransmission Time

@@ -1393,3 +1393,75 @@ SPtr<TOptStatusCode> TClntMsg::getStatusCode() const {
     }
     return SPtr_cast<TOptStatusCode>(status);
 }
+
+bool TClntMsg::isPrefixChanged(SPtr<TClntMsg> Reply) {
+    bool bSendRelease = false;
+    SPtr<TOpt> opt;
+    SPtr<TClntOptIA_PD> reqOptPD = SPtr_cast<TClntOptIA_PD>(this->getOption(OPTION_IA_PD));
+
+    if (reqOptPD) {
+        bSendRelease = true;
+        SPtr<TOptIAPrefix> reqPrefix = SPtr_cast<TOptIAPrefix>(reqOptPD->getOption(OPTION_IAPREFIX));
+        SPtr<TClntOptIA_PD> pd = SPtr_cast<TClntOptIA_PD>(Reply->getOption(OPTION_IA_PD));
+
+        if (pd) {
+            pd->firstOption();
+            while ( opt = pd->getOption() ) {
+                if (opt->getOptType() == OPTION_IAPREFIX) {
+                    SPtr<TOptIAPrefix> prefix = SPtr_cast<TOptIAPrefix>(opt);
+                    if (*(prefix->getPrefix()) == *(reqPrefix->getPrefix()) && prefix->getValid() > 0) {
+                        bSendRelease = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return bSendRelease;
+}
+
+bool TClntMsg::isAddrChanged(SPtr<TClntMsg> Reply) {
+    bool bSendRelease = false;
+    SPtr<TOpt> opt;
+    SPtr<TClntOptIA_NA> reqOptIA = SPtr_cast<TClntOptIA_NA>(this->getOption(OPTION_IA_NA));
+
+    if (reqOptIA) {
+        bSendRelease = true;
+        SPtr<TOptIAAddress> reqAddr = SPtr_cast<TOptIAAddress>(reqOptIA->getOption(OPTION_IAADDR));
+        SPtr<TClntOptIA_NA> ia = SPtr_cast<TClntOptIA_NA>(Reply->getOption(OPTION_IA_NA));
+
+        if (ia) {
+            ia->firstOption();
+            while ( opt = ia->getOption() ) {
+                if (opt->getOptType() == OPTION_IAADDR) {
+                    SPtr<TOptIAAddress> addr = SPtr_cast<TOptIAAddress>(opt);
+                    if (*(addr->getAddr()) == *(reqAddr->getAddr()) && addr->getValid() > 0) {
+                        bSendRelease = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return bSendRelease;
+}
+
+void TClntMsg::prepareAndSendRelease() {
+    List(TAddrIA) releasedIAs;
+    List(TAddrIA) releasedPDs;
+
+    SPtr<TAddrIA> ptrIA;
+    SPtr<TAddrIA> ptrPD;
+
+    ClntAddrMgr().firstIA();
+    while (ptrIA = ClntAddrMgr().getIA()) {
+        releasedIAs.append(ptrIA);
+    }
+
+    ClntAddrMgr().firstPD();
+    while (ptrPD = ClntAddrMgr().getPD()) {
+        releasedPDs.append(ptrPD);
+    }
+
+    ClntTransMgr().sendRelease(releasedIAs, SPtr<TAddrIA>(), releasedPDs);
+}
