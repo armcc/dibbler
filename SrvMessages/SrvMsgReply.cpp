@@ -102,6 +102,10 @@ bool TSrvMsgReply::handleConfirmOptions(TOptList & options) {
                     continue;
                 }
                 onLink = cfgIface->confirmAddress(IATYPE_IA, optAddr->getAddr());
+                if (onLink)
+                {
+                    SrvAddrMgr().addCachedEntry(ClientDUID, optAddr->getAddr(), IATYPE_IA);
+                }
                 checkCnt++;
             }
             break;
